@@ -1,0 +1,187 @@
+integrate data without writing single line of code.
+kafka do same as streamset 
+stremset is not open source
+streamset do not replace the kafka we create kafka as dead line(single line)
+use kafka with streamset
+we combine kafka with streamset
+we remove dependance of developer
+streamset comletely remove data drift problem of kafka
+
+what is drift problem 
+
+change in source of the data which will requires to write the producer code once again this problem is called data drift.
+
+which will cause dealy in production
+
+we are using simplicity of streamset and reseliance of kafka
+
+
+deployment of streamset requires the dependancy
+how to check compatibility?======on website of streamset and cloudera
+cloudera(CDH and CM)   5.13.3
+kafka  4.14
+os      ubuntu 14(very carefull when you take this otherwise it give compatibility problem====)
+java  orcale java 8
+sdc(streamset data collector)  3.13
+
+must be check compbility before taking the this 5 things
+
+process to depoy this
+
+==========================================deployment of CM===================================
+
+launch the instances 
+as cm
+
+step1:- do pre-requisites
+
+1.iptable diable
+2.swappiness set to 1
+3. install ntp
+4.disable transparent huge pages
+5.set root user space to 1
+$ sudo tune2fs -m 1 /dev/xvdf
+
+step 2:- download jdk tarball from s3 
+wget 
+download tarball in /home/ubuntu
+and untar tarball using 
+tar -xzf  jdk-8u202-linux-x64.tar
+
+then make AMI of this instance and launch the other nodes
+
+step 3:- install apache2 webserver
+make direactory for webserver
+as an /var/www/html/cloudera-repos/cm5 and change permission as an ugo+rX 
+
+step 4:-download cm tarball of 5.13 
+cm5.13.3-ubuntu14-04.tar
+using s3  in /var/www/html/cloudera-repo /cm5 direactory
+
+step5 :- untar cm 5.13 tarball
+and set internal repo for cm tarball 
+as an 
+sudo nano /etc/apt/sources.list.d/cloudera-repo.list
+deb [trusted=yes] http://<pri-dns-cm>/cloudera-repos/cm5 trusty-cm5 contrib
+
+step 6:-Install Cloudera Manager server software 
+
+$ sudo apt-get install cloudera-manager-daemons cloudera-manager-agent cloudera-manager-server -y
+
+$ sudo apt-get install cloudera-manager-server-db-2 -y
+
+$ sudo service cloudera-scm-server-db start
+
+
+
+
+step7:----** Set Java Home **---
+
+sudo nano /etc/default/cloudera-scm-server
+
+export JAVA_HOME=/usr/java/jdk1.8.0_202
+
+
+---** Start Cloudera Manager server **---
+
+$ sudo service cloudera-scm-server start
+
+---** Start Cloudera Manager agent **---
+
+$ sudo service cloudera-scm-agent start
+
+$ sudo service cloudera-scm-agent status
+
+---** Set Java home location for all hosts **---
+
+
+- O CM -> Hosts -> All hosts -> Configuration - Ctegory Advanced
+
+- Set the Java Home Directory property to the custom location.
+
+- Click Save Changes.
+
+- Restart all services.
+
+Log in to CM host
+   
+   
+   
+   
+  ##################### my lines dowenload kafka tar file############################# 
+wget ----copy url ---(awss3)
+ 
+move this parcel and sha file to /opt/cloudera/parcel-repo/
+sudo mv KAFKA-4.1.0-1.4.1.0.p0.4-trusty.parcel /opt/cloudera/parcel-repo
+sudo mv KAFKA-4.1.0-1.4.1.0.p0.4-trusty.parcel.sh /opt/cloudera/parcel-repo
+
+change the owenrship 
+cd /opt/cloudera/parcel-repo/
+ll
+
+$ sudo chown cloudera-scm:cloudera-scm KAFKA-4.1.0-1.4.1.0.p0.4-trusty.parcel 
+$ sudo chown cloudera-scm:cloudera-scm KAFKA-4.1.0-1.4.1.0.p0.4-trusty.parcel.sha
+
+$ sudo service cloudera-scm-server restart
+
+now go to web UI of cloudera go to cloudera parcel of kafka
+distribute the kafka service and activate the kafka service 
+now add the kafka service in the cm ==select the kafka broker ==broker start on worker node ===
+   
+
+################################################
+	Streamsets on Cloudera Manager
+################################################
+
+****---- Install Streamsets CSD ----****
+
+$ wget --no-check-certificate https://archives.streamsets.com/datacollector/3.13.0/csd/STREAMSETS-3.13.0.jar
+
+$ sudo mv STREAMSETS-3.13.0.jar /opt/cloudera/csd/
+
+$ sudo chown cloudera-scm:cloudera-scm /opt/cloudera/csd/STREAMSETS*.jar
+
+$ sudo chmod 644 /opt/cloudera/csd/STREAMSETS*.jar
+
+$ sudo service cloudera-scm-server restart
+
+## Restart cloudera management services
+
+
+
+****---- Download parcel for stramsets data collector (https://archives.streamsets.com/index.html) ----****
+
+$  wget https://archives.streamsets.com/datacollector/3.13.0/parcel/STREAMSETS_DATACOLLECTOR-3.13.0-trusty.parcel
+
+****---- Download the hash file ----****
+
+$ wget https://archives.streamsets.com/datacollector/3.13.0/parcel/STREAMSETS_DATACOLLECTOR-3.13.0-trusty.parcel.sha
+
+****---- Move the parcel and hash file to the local repository ----****
+
+$ sudo mv STREAMSETS_DATACOLLECTOR-3.13.0-trusty.parcel /opt/cloudera/parcel-repo/
+
+$ sudo mv STREAMSETS_DATACOLLECTOR-3.13.0-trusty.parcel.sha /opt/cloudera/parcel-repo/
+   
+****---- Change the ownership of parcel and hash file ----****
+
+$ cd /opt/cloudera/parcel-repo/
+
+$ sudo chown cloudera-scm:cloudera-scm STREAMSETS_DATACOLLECTOR-3.13.0-trusty.parcel
+
+$ sudo chown cloudera-scm:cloudera-scm STREAMSETS_DATACOLLECTOR-3.13.0-trusty.parcel.sha
+
+
+## Distribute and activate parcel
+	Go to CM UI and click on parcel UI
+	Select local cluster
+	Click distribute parcel for Stramsets
+	Click activate
+
+## Add stramsets service
+	Go to CM, click add service and add streamsets	
+
+
+###################open the stremset webui:
+
+public ip of the instances on which csd  install:18630
